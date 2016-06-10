@@ -1,0 +1,18 @@
+{
+  "name": "postcss-easymath",
+  "version": "0.0.1",
+  "description": "An easy plugin for postcss to do Math calculation.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "postcss",
+    "math"
+  ],
+  "author": "YreenChan",
+  "license": "MIT",
+  "devDependencies": {
+    "postcss": "^5.0.21"
+  }
+}

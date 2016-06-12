@@ -1,13 +1,16 @@
 const postcss = require('postcss');
-
 function per(val) {
-	val = val.split(',');
-	return (resolve(val[0]) * 100).toFixed(val[1] || 5) + '%';
+	var rs = (val || '').toString().split(',');
+	if (!rs || rs.length < 1) return '';
+
+	var regDotNum = new RegExp('[0-9]+(\.[0-9]{0,'+ (rs[1] || 5) +'})?');
+	var result = (exec(rs[0]) * 100).toString().match(regDotNum);
+	return result && result[0] ? parseFloat(result[0]) + '%' : '';
 }
 
-function resolve(val) {
+function exec(val) {
 	try {
-		eval('var val = ' + val);
+		val = new Function('return ' + val)();
 	} catch(e) {
 		console.log('[Error] in Math.per ', e);
 	}
@@ -16,7 +19,7 @@ function resolve(val) {
 
 
 module.exports = postcss.plugin('postcss-precision', function() {
-	var mathTest = /Math\.([a-z]+)\(([^\)]+)\)/;
+	var mathTest = /Math\.([a-z]+)\(([^\)]+)\)/g;
 	var unitTest = /px|em|rem/;
 
 	return function(style) {
@@ -24,13 +27,14 @@ module.exports = postcss.plugin('postcss-precision', function() {
 			if (decl.value && mathTest.test(decl.value)) {
 				var rs = decl.value.match(mathTest);
 				if (rs) {
-					if (rs[1] === 'per' && rs[2]) {
-						decl.value = per(rs[2]);
-					} else {
-						var unit = rs[2].match(/px|em|rem/) || [''];
-						var val = rs[2].replace(unitTest, '');
-						decl.value = Math[rs[1]](resolve(val)) + unit;
-					}
+					decl.value = decl.value.replace(mathTest, function(origin, func, val) {
+						if (func === 'per') {
+							return per(val);
+						} else {
+							var unit = rs[2].match(/px|em|rem/) || [''];
+							return Math[rs[1]](exec(rs[2].replace(unitTest, ''))) + unit;
+						}
+					});
 				}
 			}
 		});
